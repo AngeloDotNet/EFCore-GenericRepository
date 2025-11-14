@@ -31,7 +31,7 @@ public class Tests : InMemoryDbContext
         await dbContext.Database.EnsureDeletedAsync();
         await dbContext.Database.EnsureCreatedAsync();
 
-        var entities = await repository.GetAllAsync(includes: null!, filter: x => x.Id >= 3 & x.Id <= 8);
+        var entities = await repository.GetAllAsync(includes: null!, filter: x => x.Id >= 3 && x.Id <= 8);
 
         Assert.Equal(6, entities.Count());
         Assert.NotNull(entities);
