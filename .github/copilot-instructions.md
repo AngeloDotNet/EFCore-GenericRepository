@@ -20,7 +20,7 @@
 - Ensure that the final return statement of a method is on its own line.
 - Use pattern matching and switch expressions wherever possible.
 - Prefer using collection expressions when possible
-- Use `is` pattern matching instead of `as` and null checks
+- Use `is` pattern matching instead of `as` and null checks.
 - Use `nameof` instead of string literals when referring to member names.
 - Prefer `?.` if applicable (e.g. `scope?.Dispose()`).
 - Use `ObjectDisposedException.ThrowIf` where applicable.
