@@ -19,7 +19,7 @@
 - Insert a newline before the opening curly brace of any code block (e.g., after `if`, `for`, `while`, `foreach`, `using`, `try`, etc.).
 - Ensure that the final return statement of a method is on its own line.
 - Use pattern matching and switch expressions wherever possible.
-- Prefer using collection expressions when possible
+- Prefer using collection expressions when possible.
 - Use `is` pattern matching instead of `as` and null checks.
 - Use `nameof` instead of string literals when referring to member names.
 - Prefer `?.` if applicable (e.g. `scope?.Dispose()`).
