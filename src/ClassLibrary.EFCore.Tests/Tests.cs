@@ -85,7 +85,7 @@ public class Tests : InMemoryDbContext
 
         var entity = personFaker.Generate();
 
-        await repository.CreateAsync(personFaker);
+        await repository.CreateAsync(entity);
 
         Assert.NotNull(entity);
         Assert.True(entity.Id > 0);
