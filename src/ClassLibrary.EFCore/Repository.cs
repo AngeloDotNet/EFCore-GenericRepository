@@ -107,11 +107,12 @@ public class Repository<TEntity, TKey>(DbContext dbContext) : IRepository<TEntit
     /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task DeleteByIdAsync(TKey id)
     {
-        var entity = new TEntity { Id = id };
-
-        DbContext.Set<TEntity>().Remove(entity);
-
-        await DbContext.SaveChangesAsync();
+        var entity = await GetByIdAsync(id);
+        if (entity is null)
+        {
+            return;
+        }
+        await DeleteAsync(entity);
     }
 
     /// <summary>
