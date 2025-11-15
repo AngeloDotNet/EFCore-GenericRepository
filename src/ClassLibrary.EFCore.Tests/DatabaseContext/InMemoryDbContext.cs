@@ -7,7 +7,7 @@ public abstract class InMemoryDbContext
     protected UnitTestDbContext GetDbContext()
     {
         var inMemoryDatabase = new DbContextOptionsBuilder<UnitTestDbContext>()
-            .UseInMemoryDatabase("InMemory-Database-Test")
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
 
         return new UnitTestDbContext(inMemoryDatabase);
