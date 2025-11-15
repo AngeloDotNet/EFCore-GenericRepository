@@ -123,6 +123,14 @@ public class Repository<TEntity, TKey>(DbContext dbContext) : IRepository<TEntit
     /// <returns>A task that represents the asynchronous operation. The task result contains a PaginatedResult of TEntity.</returns>
     public async Task<PaginatedResult<TEntity>> GetPaginatedAsync(IQueryable<TEntity> query, int pageNumber, int pageSize)
     {
+        if (pageNumber < 1)
+        {
+            throw new ArgumentOutOfRangeException(nameof(pageNumber), pageNumber, "Page number must be at least 1.");
+        }
+        if (pageSize <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(pageSize), pageSize, "Page size must be greater than 0.");
+        }
         var result = new PaginatedResult<TEntity>
         {
             CurrentPage = pageNumber,
