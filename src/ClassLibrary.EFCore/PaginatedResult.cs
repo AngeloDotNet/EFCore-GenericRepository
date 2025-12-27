@@ -24,7 +24,10 @@ public class PaginatedResult<T>
     /// <summary>
     /// Gets the total number of pages.
     /// </summary>
-    public int TotalPages => (int)Math.Ceiling(TotalItems / (double)PageSize);
+    public int TotalPages
+        => PageSize > 0
+            ? (int)Math.Ceiling(TotalItems / (double)PageSize)
+            : 0;
 
     /// <summary>
     /// Gets or sets the items in the current page.
