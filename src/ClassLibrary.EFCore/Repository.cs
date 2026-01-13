@@ -1,6 +1,7 @@
 ﻿namespace ClassLibrary.EFCore;
 
-public class Repository<TEntity, TKey>(DbContext dbContext) : IRepository<TEntity, TKey> where TEntity : class, IEntity<TKey>, new()
+public class Repository<TEntity, TKey>(DbContext dbContext) : IRepository<TEntity, TKey>
+    where TEntity : class, IEntity<TKey>, new()
 {
     /// <summary>
     /// Gets the database context.
@@ -9,52 +10,51 @@ public class Repository<TEntity, TKey>(DbContext dbContext) : IRepository<TEntit
 
     /// <summary>
     /// Retrieves all entities asynchronously with optional filtering, ordering, and including related entities.
+    /// The result is materialized to a read-only list to avoid deferred execution outside the DbContext lifetime.
     /// </summary>
-    /// <param name="includes">A function to include related entities.</param>
-    /// <param name="filter">A filter expression to apply.</param>
-    /// <param name="orderBy">An expression to order the results.</param>
-    /// <param name="ascending">A boolean indicating whether the order should be ascending.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains an IQueryable of TEntity.</returns>
-    public async Task<IQueryable<TEntity>> GetAllAsync(Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>> includes = null!,
-        Expression<Func<TEntity, bool>> filter = null!, Expression<Func<TEntity, object>> orderBy = null!, bool ascending = true,
+    public async Task<IReadOnlyList<TEntity>> GetAllAsync(
+        Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? includes = null,
+        Expression<Func<TEntity, bool>>? filter = null,
+        Expression<Func<TEntity, object>>? orderBy = null,
+        bool ascending = true,
         CancellationToken cancellationToken = default)
     {
         var query = DbContext.Set<TEntity>().AsNoTracking();
 
-        if (includes != null)
+        if (includes is not null)
         {
             query = includes(query);
         }
 
-        if (filter != null)
+        if (filter is not null)
         {
             query = query.Where(filter);
         }
 
-        if (orderBy != null)
+        if (orderBy is not null)
         {
             query = ascending ? query.OrderBy(orderBy) : query.OrderByDescending(orderBy);
         }
 
-        return await Task.FromResult(query);
+        var list = await query.ToListAsync(cancellationToken).ConfigureAwait(false);
+
+        return list;
     }
 
     /// <summary>
     /// Retrieves an entity by its identifier asynchronously.
     /// </summary>
-    /// <param name="id">The identifier of the entity.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains the entity if found; otherwise, null.</returns>
     public async Task<TEntity?> GetByIdAsync(TKey id, CancellationToken cancellationToken = default)
     {
-        var entity = await DbContext.Set<TEntity>().FindAsync([id], cancellationToken);
+        // FindAsync requires object[] for composite keys; single key wrapped in object[]
+        var entity = await DbContext.Set<TEntity>().FindAsync(new object?[] { id }, cancellationToken).ConfigureAwait(false);
 
-        if (entity == null)
+        if (entity is null)
         {
             return null;
         }
 
+        // Detach to avoid keeping the entity tracked by the repository's context
         DbContext.Entry(entity).State = EntityState.Detached;
 
         return entity;
@@ -63,29 +63,28 @@ public class Repository<TEntity, TKey>(DbContext dbContext) : IRepository<TEntit
     /// <summary>
     /// Creates a new entity asynchronously.
     /// </summary>
-    /// <param name="entity">The entity to create.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task CreateAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(entity);
+
         DbContext.Set<TEntity>().Add(entity);
 
-        await DbContext.SaveChangesAsync(cancellationToken);
+        await DbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
+        // Detach to avoid holding references in the context
         DbContext.Entry(entity).State = EntityState.Detached;
     }
 
     /// <summary>
     /// Updates an existing entity asynchronously.
     /// </summary>
-    /// <param name="entity">The entity to update.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task UpdateAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(entity);
+
         DbContext.Set<TEntity>().Update(entity);
 
-        await DbContext.SaveChangesAsync(cancellationToken);
+        await DbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
 
         DbContext.Entry(entity).State = EntityState.Detached;
     }
@@ -93,97 +92,84 @@ public class Repository<TEntity, TKey>(DbContext dbContext) : IRepository<TEntit
     /// <summary>
     /// Deletes an entity asynchronously.
     /// </summary>
-    /// <param name="entity">The entity to delete.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task DeleteAsync(TEntity entity, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(entity);
+
         DbContext.Set<TEntity>().Remove(entity);
 
-        await DbContext.SaveChangesAsync(cancellationToken);
+        await DbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Deletes an entity by its identifier asynchronously.
     /// </summary>
-    /// <param name="id">The identifier of the entity to delete.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation.</returns>
     public async Task DeleteByIdAsync(TKey id, CancellationToken cancellationToken = default)
     {
+        // Create a stub entity with key set to avoid an extra database round-trip
         var entity = new TEntity { Id = id };
 
+        DbContext.Set<TEntity>().Attach(entity);
         DbContext.Set<TEntity>().Remove(entity);
 
-        await DbContext.SaveChangesAsync(cancellationToken);
+        await DbContext.SaveChangesAsync(cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Retrieves a paginated result of entities asynchronously.
+    /// Retrieves a paginated result of entities asynchronously with optional filtering, ordering, and including related entities.
     /// </summary>
-    /// <param name="query">The query to paginate.</param>
-    /// <param name="pageNumber">The page number to retrieve.</param>
-    /// <param name="pageSize">The size of the page.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a PaginatedResult of TEntity.</returns>
-    public async Task<PaginatedResult<TEntity>> GetPaginatedAsync(IQueryable<TEntity> query, int pageNumber, int pageSize,
+    public async Task<PaginatedResult<TEntity>> GetAllPagingAsync(
+        int pageNumber,
+        int pageSize,
+        Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? includes = null,
+        Expression<Func<TEntity, bool>>? filter = null,
+        Expression<Func<TEntity, object>>? orderBy = null,
+        bool ascending = true,
         CancellationToken cancellationToken = default)
     {
         if (pageNumber < 1)
         {
-            throw new ArgumentOutOfRangeException(nameof(pageNumber), pageNumber, "Page number must be at least 1.");
+            throw new ArgumentOutOfRangeException(nameof(pageNumber), "Page number must be greater than or equal to 1.");
         }
+
         if (pageSize <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(pageSize), pageSize, "Page size must be greater than 0.");
+            throw new ArgumentOutOfRangeException(nameof(pageSize), "Page size must be greater than 0.");
         }
-        var result = new PaginatedResult<TEntity>
+
+        // Base query used for counting - avoid includes/ordering for the count to improve performance
+        var countQuery = DbContext.Set<TEntity>().AsNoTracking();
+
+        if (filter is not null)
         {
-            CurrentPage = pageNumber,
-            PageSize = pageSize,
-            TotalItems = await query.CountAsync(cancellationToken),
-            Items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken)
-        };
+            countQuery = countQuery.Where(filter);
+        }
 
-        return result;
-    }
+        var totalItems = await countQuery.CountAsync(cancellationToken).ConfigureAwait(false);
 
-    /// <summary>
-    /// Retrieves a paginated list of entities asynchronously with optional filtering, ordering, and including related entities.
-    /// </summary>
-    /// <param name="pageNumber">The page number to retrieve.</param>
-    /// <param name="pageSize">The number of items per page.</param>
-    /// <param name="includes">A function to include related entities in the query.</param>
-    /// <param name="filter">A filter expression to apply to the entities.</param>
-    /// <param name="orderBy">An expression to order the results.</param>
-    /// <param name="ascending">A boolean indicating whether the order should be ascending.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
-    /// <returns>
-    /// A task that represents the asynchronous operation. The task result contains a <see cref="PaginatedResult{TEntity}"/> with the paginated entities.
-    /// </returns>
-    public async Task<PaginatedResult<TEntity>> GetAllPagingAsync(int pageNumber, int pageSize, Func<IQueryable<TEntity>,
-        IIncludableQueryable<TEntity, object>> includes = null!, Expression<Func<TEntity, bool>> filter = null!,
-        Expression<Func<TEntity, object>> orderBy = null!, bool ascending = true, CancellationToken cancellationToken = default)
-    {
+        // Query used for fetching page - includes and ordering matter here
         var query = DbContext.Set<TEntity>().AsNoTracking();
 
-        if (includes != null)
+        if (includes is not null)
         {
             query = includes(query);
         }
 
-        if (filter != null)
+        if (filter is not null)
         {
             query = query.Where(filter);
         }
 
-        if (orderBy != null)
+        if (orderBy is not null)
         {
             query = ascending ? query.OrderBy(orderBy) : query.OrderByDescending(orderBy);
         }
 
-        var totalItems = await query.CountAsync(cancellationToken);
-        var items = await query.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToListAsync(cancellationToken);
+        var items = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken)
+            .ConfigureAwait(false);
 
         return new PaginatedResult<TEntity>
         {
