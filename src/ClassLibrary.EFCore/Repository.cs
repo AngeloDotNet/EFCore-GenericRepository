@@ -1,6 +1,7 @@
 ﻿namespace ClassLibrary.EFCore;
 
-public class Repository<TEntity, TKey>(DbContext dbContext) : IRepository<TEntity, TKey> where TEntity : class, IEntity<TKey>, new()
+public class Repository<TEntity, TKey>(DbContext dbContext) : IRepository<TEntity, TKey>
+    where TEntity : class, IEntity<TKey>, new()
 {
     /// <summary>
     /// Gets the database context.

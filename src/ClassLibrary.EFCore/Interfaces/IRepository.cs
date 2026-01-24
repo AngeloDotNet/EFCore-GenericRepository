@@ -1,6 +1,7 @@
 ﻿namespace ClassLibrary.EFCore.Interfaces;
 
-public interface IRepository<TEntity, TKey> where TEntity : class, IEntity<TKey>, new()
+public interface IRepository<TEntity, TKey>
+    where TEntity : class, IEntity<TKey>, new()
 {
     /// <summary>
     /// Retrieves all entities asynchronously with optional filtering, ordering, and including related entities.
