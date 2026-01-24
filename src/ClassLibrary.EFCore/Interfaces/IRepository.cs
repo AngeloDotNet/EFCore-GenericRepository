@@ -1,7 +1,6 @@
 ﻿namespace ClassLibrary.EFCore.Interfaces;
 
-public interface IRepository<TEntity, TKey>
-    where TEntity : class, IEntity<TKey>, new()
+public interface IRepository<TEntity, TKey> where TEntity : class, IEntity<TKey>, new()
 {
     /// <summary>
     /// Retrieves all entities asynchronously with optional filtering, ordering, and including related entities.
@@ -16,11 +15,8 @@ public interface IRepository<TEntity, TKey>
     /// <returns>
     /// A task that represents the asynchronous operation. The task result contains a materialized read-only list of <typeparamref name="TEntity"/>.
     /// </returns>
-    Task<IReadOnlyList<TEntity>> GetAllAsync(
-        Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? includes = null,
-        Expression<Func<TEntity, bool>>? filter = null,
-        Expression<Func<TEntity, object>>? orderBy = null,
-        bool ascending = true,
+    Task<IReadOnlyList<TEntity>> GetAllAsync(Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? includes = null,
+        Expression<Func<TEntity, bool>>? filter = null, Expression<Func<TEntity, object>>? orderBy = null, bool ascending = true,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -73,12 +69,6 @@ public interface IRepository<TEntity, TKey>
     /// A task that represents the asynchronous operation. The task result contains a <see cref="PaginatedResult{TEntity}"/>
     /// with the paginated entities.
     /// </returns>
-    Task<PaginatedResult<TEntity>> GetAllPagingAsync(
-        int pageNumber,
-        int pageSize,
-        Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? includes = null,
-        Expression<Func<TEntity, bool>>? filter = null,
-        Expression<Func<TEntity, object>>? orderBy = null,
-        bool ascending = true,
-        CancellationToken cancellationToken = default);
+    Task<PaginatedResult<TEntity>> GetAllPagingAsync(int pageNumber, int pageSize, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? includes = null,
+        Expression<Func<TEntity, bool>>? filter = null, Expression<Func<TEntity, object>>? orderBy = null, bool ascending = true, CancellationToken cancellationToken = default);
 }

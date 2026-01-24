@@ -1,7 +1,6 @@
 ﻿namespace ClassLibrary.EFCore;
 
-public class Repository<TEntity, TKey>(DbContext dbContext) : IRepository<TEntity, TKey>
-    where TEntity : class, IEntity<TKey>, new()
+public class Repository<TEntity, TKey>(DbContext dbContext) : IRepository<TEntity, TKey> where TEntity : class, IEntity<TKey>, new()
 {
     /// <summary>
     /// Gets the database context.
@@ -12,11 +11,8 @@ public class Repository<TEntity, TKey>(DbContext dbContext) : IRepository<TEntit
     /// Retrieves all entities asynchronously with optional filtering, ordering, and including related entities.
     /// The result is materialized to a read-only list to avoid deferred execution outside the DbContext lifetime.
     /// </summary>
-    public async Task<IReadOnlyList<TEntity>> GetAllAsync(
-        Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? includes = null,
-        Expression<Func<TEntity, bool>>? filter = null,
-        Expression<Func<TEntity, object>>? orderBy = null,
-        bool ascending = true,
+    public async Task<IReadOnlyList<TEntity>> GetAllAsync(Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? includes = null,
+        Expression<Func<TEntity, bool>>? filter = null, Expression<Func<TEntity, object>>? orderBy = null, bool ascending = true,
         CancellationToken cancellationToken = default)
     {
         var query = DbContext.Set<TEntity>().AsNoTracking();
@@ -47,7 +43,7 @@ public class Repository<TEntity, TKey>(DbContext dbContext) : IRepository<TEntit
     public async Task<TEntity?> GetByIdAsync(TKey id, CancellationToken cancellationToken = default)
     {
         // FindAsync requires object[] for composite keys; single key wrapped in object[]
-        var entity = await DbContext.Set<TEntity>().FindAsync(new object?[] { id }, cancellationToken).ConfigureAwait(false);
+        var entity = await DbContext.Set<TEntity>().FindAsync([id], cancellationToken).ConfigureAwait(false);
 
         if (entity is null)
         {
@@ -118,14 +114,8 @@ public class Repository<TEntity, TKey>(DbContext dbContext) : IRepository<TEntit
     /// <summary>
     /// Retrieves a paginated result of entities asynchronously with optional filtering, ordering, and including related entities.
     /// </summary>
-    public async Task<PaginatedResult<TEntity>> GetAllPagingAsync(
-        int pageNumber,
-        int pageSize,
-        Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? includes = null,
-        Expression<Func<TEntity, bool>>? filter = null,
-        Expression<Func<TEntity, object>>? orderBy = null,
-        bool ascending = true,
-        CancellationToken cancellationToken = default)
+    public async Task<PaginatedResult<TEntity>> GetAllPagingAsync(int pageNumber, int pageSize, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? includes = null,
+        Expression<Func<TEntity, bool>>? filter = null, Expression<Func<TEntity, object>>? orderBy = null, bool ascending = true, CancellationToken cancellationToken = default)
     {
         if (pageNumber < 1)
         {
