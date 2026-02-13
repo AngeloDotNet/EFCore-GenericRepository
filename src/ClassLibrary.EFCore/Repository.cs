@@ -12,8 +12,11 @@ public class Repository<TEntity, TKey>(DbContext dbContext) : IRepository<TEntit
     /// Retrieves all entities asynchronously with optional filtering, ordering, and including related entities.
     /// The result is materialized to a read-only list to avoid deferred execution outside the DbContext lifetime.
     /// </summary>
-    public async Task<IReadOnlyList<TEntity>> GetAllAsync(Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? includes = null,
-        Expression<Func<TEntity, bool>>? filter = null, Expression<Func<TEntity, object>>? orderBy = null, bool ascending = true,
+    public async Task<IReadOnlyList<TEntity>> GetAllAsync(
+        Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? includes = null,
+        Expression<Func<TEntity, bool>>? filter = null,
+        Expression<Func<TEntity, object>>? orderBy = null,
+        bool ascending = true,
         CancellationToken cancellationToken = default)
     {
         var query = DbContext.Set<TEntity>().AsNoTracking();
