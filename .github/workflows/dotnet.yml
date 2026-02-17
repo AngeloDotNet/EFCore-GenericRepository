@@ -11,7 +11,7 @@ env:
   PROJECT_NAME: src/ClassLibrary.EFCore
   PROJECT_FILE: ClassLibrary.EFCore.csproj
   # TAG_NAME: EFCore
-  # RELEASE_NAME: ClassLibrary.EFCore
+  RELEASE_NAME: ClassLibrary.EFCore
   
 jobs:
   build:
@@ -20,14 +20,15 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4.1.0
+      uses: actions/checkout@v6
       with:
         fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
 
     - name: Setup .NET Core SDK ${{ env.NET_VERSION }}
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v5
       with:
         dotnet-version: ${{ env.NET_VERSION }}
+        dotnet-quality: 'ga'
 
     - name: Build with dotnet
       run: dotnet build -c Release
@@ -42,10 +43,38 @@ jobs:
         path: ${{ env.PROJECT_NAME }}
 
     - name: Package
-      run: dotnet pack -c Release -o . '${{ env.PROJECT_NAME }}/${{ env.PROJECT_FILE }}' -p:Version=${{ steps.gitversion.outputs.SemVer }}
+      run: dotnet pack -c Release -o . '${{ env.PROJECT_NAME }}/${{ env.PROJECT_FILE }}'
 
     - name: Publish on NuGet
       run: dotnet nuget push *.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json --no-symbols --skip-duplicate
+      
+    - name: Publish on GitHub
+      run: |
+        dotnet nuget add source --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/${{ github.repository_owner }}/index.json"
+        dotnet nuget push "**/*.nupkg" --source github --api-key ${{ secrets.GITHUB_TOKEN }} --skip-duplicate
+
+    - name: Create release
+      uses: softprops/action-gh-release@v2
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v${{ steps.nbgv.outputs.NuGetPackageVersion }}
+        name: ${{ env.RELEASE_NAME }} ${{ steps.nbgv.outputs.NuGetPackageVersion }}
+        body: Generic Repository - A generic implementation of Entity Framework Core methods for .NET 10
+        draft: false
+        prerelease: false
+
+    # - name: Nerdbank.GitVersioning 
+    #   uses: dotnet/nbgv@v0.4
+    #   id: nbgv
+    #   with:        
+    #     path: ${{ env.PROJECT_NAME }}
+
+    # - name: Package
+    #   run: dotnet pack -c Release -o . '${{ env.PROJECT_NAME }}/${{ env.PROJECT_FILE }}' -p:Version=${{ steps.gitversion.outputs.SemVer }}
+
+    # - name: Publish on NuGet
+    #   run: dotnet nuget push *.nupkg -k ${{ secrets.NUGET_API_KEY }} -s https://api.nuget.org/v3/index.json --no-symbols --skip-duplicate
       
     # - name: Publish on GitHub
       # run: |
