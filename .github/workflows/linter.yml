@@ -16,12 +16,12 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0 # avoid shallow clone so nbgv can do its work.
 
       - name: Lint Code Base
-        uses: github/super-linter@v5
+        uses: github/super-linter@v7
         env:
           LINTER_RULES_PATH: '.'
           EDITORCONFIG_FILE_NAME: '.editorconfig'
