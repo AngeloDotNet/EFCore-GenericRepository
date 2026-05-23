@@ -70,6 +70,7 @@ public interface IRepository<TEntity, TKey>
     /// A task that represents the asynchronous operation. The task result contains a <see cref="PaginatedResult{TEntity}"/>
     /// with the paginated entities.
     /// </returns>
-    Task<PaginatedResult<TEntity>> GetAllPagingAsync(int pageNumber, int pageSize, Func<IQueryable<TEntity>, IIncludableQueryable<TEntity, object>>? includes = null,
-        Expression<Func<TEntity, bool>>? filter = null, Expression<Func<TEntity, object>>? orderBy = null, bool ascending = true, CancellationToken cancellationToken = default);
+    Task<PaginatedResult<TEntity>> GetAllPagingAsync(int pageNumber, int pageSize, Func<IQueryable<TEntity>,
+        IIncludableQueryable<TEntity, object>>? includes = null, Expression<Func<TEntity, bool>>? filter = null,
+        Expression<Func<TEntity, object>>? orderBy = null, bool ascending = true, CancellationToken cancellationToken = default);
 }
