@@ -6,8 +6,18 @@ using Persone = ClassLibrary.EFCore.Tests.Entities.Person;
 
 namespace ClassLibrary.EFCore.Tests;
 
+/// <summary>
+/// Verifies the repository behavior against the in-memory test database.
+/// </summary>
+/// <remarks>
+/// Each test starts from a clean database so the assertions validate repository behavior rather than
+/// relying on state left behind by a previous test.
+/// </remarks>
 public class Tests : InMemoryDbContext
 {
+    /// <summary>
+    /// Verifies that <see cref="Repository{TEntity, TKey}"/> returns every seeded <see cref="Persone"/> entity.
+    /// </summary>
     [Fact]
     public async Task GetAllEntitiesAsync()
     {
@@ -22,6 +32,9 @@ public class Tests : InMemoryDbContext
         Assert.NotNull(entities);
     }
 
+    /// <summary>
+    /// Verifies that filtered retrieval only returns <see cref="Persone"/> entities matching the predicate.
+    /// </summary>
     [Fact]
     public async Task GetAllEntitiesWithFilterAsync()
     {
@@ -37,6 +50,9 @@ public class Tests : InMemoryDbContext
         Assert.NotNull(entities);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="Repository{TEntity, TKey}.GetByIdAsync(TKey, CancellationToken)"/> returns the expected entity when the key exists.
+    /// </summary>
     [Fact]
     public async Task GetEntityByIdAsync()
     {
@@ -54,6 +70,9 @@ public class Tests : InMemoryDbContext
         Assert.Equal(entity.Cognome, Assert.IsType<Persone>(entity).Cognome);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="Repository{TEntity, TKey}.GetByIdAsync(TKey, CancellationToken)"/> returns <see langword="null" /> when the key does not exist.
+    /// </summary>
     [Fact]
     public async Task GetEntityByIdNotFoundAsync()
     {
@@ -68,6 +87,9 @@ public class Tests : InMemoryDbContext
         Assert.Null(entity);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="Repository{TEntity, TKey}.CreateAsync(TEntity, CancellationToken)"/> persists a new entity with generated values.
+    /// </summary>
     [Fact]
     public async Task CreateEntityAsync()
     {
@@ -94,6 +116,9 @@ public class Tests : InMemoryDbContext
         Assert.False(string.IsNullOrEmpty(entity.Cognome));
     }
 
+    /// <summary>
+    /// Verifies that <see cref="Repository{TEntity, TKey}.UpdateAsync(TEntity, CancellationToken)"/> persists changes made to an existing entity.
+    /// </summary>
     [Fact]
     public async Task UpdateEntityAsync()
     {
@@ -127,6 +152,9 @@ public class Tests : InMemoryDbContext
         Assert.Equal(newEntity.Cognome, Assert.IsType<Persone>(entity).Cognome);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="Repository{TEntity, TKey}.DeleteAsync(TEntity, CancellationToken)"/> removes the specified entity.
+    /// </summary>
     [Fact]
     public async Task DeleteEntityAsync()
     {
@@ -145,6 +173,9 @@ public class Tests : InMemoryDbContext
         Assert.Equal(9, entities.Count());
     }
 
+    /// <summary>
+    /// Verifies that <see cref="Repository{TEntity, TKey}.DeleteByIdAsync(TKey, CancellationToken)"/> removes an entity by its key.
+    /// </summary>
     [Fact]
     public async Task DeleteByIdEntityAsync()
     {
@@ -162,6 +193,9 @@ public class Tests : InMemoryDbContext
         Assert.Equal(9, entities.Count());
     }
 
+    /// <summary>
+    /// Verifies that paged retrieval returns the expected page when filtering and eager-loading related data.
+    /// </summary>
     [Fact]
     public async Task GetPaginatedEntitiesAsync()
     {
@@ -179,6 +213,9 @@ public class Tests : InMemoryDbContext
         Assert.Contains(entities.Items, x => x.Id == 8);
     }
 
+    /// <summary>
+    /// Verifies that paged retrieval works without a filter when ordering is supplied explicitly.
+    /// </summary>
     [Fact]
     public async Task GetPaginatedEntitiesWithoutWhereAsync()
     {
@@ -196,6 +233,9 @@ public class Tests : InMemoryDbContext
         Assert.Contains(entities.Items, x => x.Id == 3);
     }
 
+    /// <summary>
+    /// Verifies that paged retrieval honors descending ordering.
+    /// </summary>
     [Fact]
     public async Task GetPaginatedEntitiesDescendingOrderTypeAsync()
     {
@@ -214,6 +254,9 @@ public class Tests : InMemoryDbContext
         Assert.Contains(entities.Items, x => x.Id == 8);
     }
 
+    /// <summary>
+    /// Verifies that paged retrieval returns the expected total count and page contents.
+    /// </summary>
     [Fact]
     public async Task GetPagingEntitiesAsync()
     {
