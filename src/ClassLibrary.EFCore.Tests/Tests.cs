@@ -14,10 +14,10 @@ public class Tests : InMemoryDbContext
         using var dbContext = GetDbContext();
         var repository = new Repository<Persone, int>(dbContext);
 
-        await dbContext.Database.EnsureDeletedAsync();
-        await dbContext.Database.EnsureCreatedAsync();
+        await dbContext.Database.EnsureDeletedAsync(TestContext.Current.CancellationToken);
+        await dbContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
 
-        var entities = await repository.GetAllAsync();
+        var entities = await repository.GetAllAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotNull(entities);
     }
@@ -28,10 +28,10 @@ public class Tests : InMemoryDbContext
         using var dbContext = GetDbContext();
         var repository = new Repository<Persone, int>(dbContext);
 
-        await dbContext.Database.EnsureDeletedAsync();
-        await dbContext.Database.EnsureCreatedAsync();
+        await dbContext.Database.EnsureDeletedAsync(TestContext.Current.CancellationToken);
+        await dbContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
 
-        var entities = await repository.GetAllAsync(includes: null!, filter: x => x.Id >= 3 && x.Id <= 8);
+        var entities = await repository.GetAllAsync(includes: null!, filter: x => x.Id >= 3 && x.Id <= 8, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(6, entities.Count());
         Assert.NotNull(entities);
@@ -43,10 +43,10 @@ public class Tests : InMemoryDbContext
         using var dbContext = GetDbContext();
         var repository = new Repository<Persone, int>(dbContext);
 
-        await dbContext.Database.EnsureDeletedAsync();
-        await dbContext.Database.EnsureCreatedAsync();
+        await dbContext.Database.EnsureDeletedAsync(TestContext.Current.CancellationToken);
+        await dbContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
 
-        var entity = await repository.GetByIdAsync(2);
+        var entity = await repository.GetByIdAsync(2, TestContext.Current.CancellationToken);
 
         Assert.NotNull(entity);
         Assert.Equal(2, Assert.IsType<Persone>(entity).Id);
@@ -60,10 +60,10 @@ public class Tests : InMemoryDbContext
         using var dbContext = GetDbContext();
         var repository = new Repository<Persone, int>(dbContext);
 
-        await dbContext.Database.EnsureDeletedAsync();
-        await dbContext.Database.EnsureCreatedAsync();
+        await dbContext.Database.EnsureDeletedAsync(TestContext.Current.CancellationToken);
+        await dbContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
 
-        var entity = await repository.GetByIdAsync(30);
+        var entity = await repository.GetByIdAsync(30, TestContext.Current.CancellationToken);
 
         Assert.Null(entity);
     }
@@ -74,8 +74,8 @@ public class Tests : InMemoryDbContext
         using var dbContext = GetDbContext();
         var repository = new Repository<Persone, int>(dbContext);
 
-        await dbContext.Database.EnsureDeletedAsync();
-        await dbContext.Database.EnsureCreatedAsync();
+        await dbContext.Database.EnsureDeletedAsync(TestContext.Current.CancellationToken);
+        await dbContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
 
         var personFaker = new Faker<Persone>("it")
             .RuleFor(p => p.Id, f => f.IndexFaker + f.Random.Number(11, 100))
@@ -85,7 +85,7 @@ public class Tests : InMemoryDbContext
 
         var entity = personFaker.Generate();
 
-        await repository.CreateAsync(entity);
+        await repository.CreateAsync(entity, TestContext.Current.CancellationToken);
 
         Assert.NotNull(entity);
         Assert.True(entity.Id > 0);
@@ -100,10 +100,10 @@ public class Tests : InMemoryDbContext
         using var dbContext = GetDbContext();
         var repository = new Repository<Persone, int>(dbContext);
 
-        await dbContext.Database.EnsureDeletedAsync();
-        await dbContext.Database.EnsureCreatedAsync();
+        await dbContext.Database.EnsureDeletedAsync(TestContext.Current.CancellationToken);
+        await dbContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
 
-        var entity = await repository.GetByIdAsync(2);
+        var entity = await repository.GetByIdAsync(2, TestContext.Current.CancellationToken);
 
         if (entity == null)
         {
@@ -119,7 +119,7 @@ public class Tests : InMemoryDbContext
         entity.Nome = newEntity.Nome;
         entity.Cognome = newEntity.Cognome;
 
-        await repository.UpdateAsync(entity);
+        await repository.UpdateAsync(entity, TestContext.Current.CancellationToken);
 
         Assert.NotNull(entity);
         Assert.Equal(2, Assert.IsType<Persone>(entity).Id);
@@ -133,13 +133,13 @@ public class Tests : InMemoryDbContext
         using var dbContext = GetDbContext();
         var repository = new Repository<Persone, int>(dbContext);
 
-        await dbContext.Database.EnsureDeletedAsync();
-        await dbContext.Database.EnsureCreatedAsync();
+        await dbContext.Database.EnsureDeletedAsync(TestContext.Current.CancellationToken);
+        await dbContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
 
-        var entity = await repository.GetByIdAsync(4);
-        await repository.DeleteAsync(entity!);
+        var entity = await repository.GetByIdAsync(4, TestContext.Current.CancellationToken);
+        await repository.DeleteAsync(entity!, TestContext.Current.CancellationToken);
 
-        var entities = await repository.GetAllAsync();
+        var entities = await repository.GetAllAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotNull(entities);
         Assert.Equal(9, entities.Count());
@@ -151,12 +151,12 @@ public class Tests : InMemoryDbContext
         using var dbContext = GetDbContext();
         var repository = new Repository<Persone, int>(dbContext);
 
-        await dbContext.Database.EnsureDeletedAsync();
-        await dbContext.Database.EnsureCreatedAsync();
+        await dbContext.Database.EnsureDeletedAsync(TestContext.Current.CancellationToken);
+        await dbContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
 
-        await repository.DeleteByIdAsync(4);
+        await repository.DeleteByIdAsync(4, TestContext.Current.CancellationToken);
 
-        var entities = await repository.GetAllAsync();
+        var entities = await repository.GetAllAsync(cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotNull(entities);
         Assert.Equal(9, entities.Count());
@@ -168,10 +168,10 @@ public class Tests : InMemoryDbContext
         using var dbContext = GetDbContext();
         var repository = new Repository<Persone, int>(dbContext);
 
-        await dbContext.Database.EnsureDeletedAsync();
-        await dbContext.Database.EnsureCreatedAsync();
+        await dbContext.Database.EnsureDeletedAsync(TestContext.Current.CancellationToken);
+        await dbContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
 
-        var entities = await repository.GetAllPagingAsync(pageNumber: 2, pageSize: 5, includes: q => q.Include(p => p.Indirizzo), filter: w => w.Id <= 10);
+        var entities = await repository.GetAllPagingAsync(pageNumber: 2, pageSize: 5, includes: q => q.Include(p => p.Indirizzo), filter: w => w.Id <= 10, cancellationToken: TestContext.Current.CancellationToken);
         var itemCount = entities.Items.Count;
 
         Assert.NotNull(entities);
@@ -185,10 +185,10 @@ public class Tests : InMemoryDbContext
         using var dbContext = GetDbContext();
         var repository = new Repository<Persone, int>(dbContext);
 
-        await dbContext.Database.EnsureDeletedAsync();
-        await dbContext.Database.EnsureCreatedAsync();
+        await dbContext.Database.EnsureDeletedAsync(TestContext.Current.CancellationToken);
+        await dbContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
 
-        var entities = await repository.GetAllPagingAsync(pageNumber: 1, pageSize: 5, includes: q => q.Include(p => p.Indirizzo), orderBy: x => x.Id);
+        var entities = await repository.GetAllPagingAsync(pageNumber: 1, pageSize: 5, includes: q => q.Include(p => p.Indirizzo), orderBy: x => x.Id, cancellationToken: TestContext.Current.CancellationToken);
         var itemCount = entities.Items.Count;
 
         Assert.NotNull(entities);
@@ -202,10 +202,10 @@ public class Tests : InMemoryDbContext
         using var dbContext = GetDbContext();
         var repository = new Repository<Persone, int>(dbContext);
 
-        await dbContext.Database.EnsureDeletedAsync();
-        await dbContext.Database.EnsureCreatedAsync();
+        await dbContext.Database.EnsureDeletedAsync(TestContext.Current.CancellationToken);
+        await dbContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
 
-        var entities = await repository.GetAllPagingAsync(pageNumber: 1, pageSize: 5, includes: q => q.Include(p => p.Indirizzo), orderBy: x => x.Id, ascending: false);
+        var entities = await repository.GetAllPagingAsync(pageNumber: 1, pageSize: 5, includes: q => q.Include(p => p.Indirizzo), orderBy: x => x.Id, ascending: false, cancellationToken: TestContext.Current.CancellationToken);
         var itemCount = entities.Items.Count;
 
         Assert.NotNull(entities);
@@ -220,10 +220,10 @@ public class Tests : InMemoryDbContext
         using var dbContext = GetDbContext();
         var repository = new Repository<Persone, int>(dbContext);
 
-        await dbContext.Database.EnsureDeletedAsync();
-        await dbContext.Database.EnsureCreatedAsync();
+        await dbContext.Database.EnsureDeletedAsync(TestContext.Current.CancellationToken);
+        await dbContext.Database.EnsureCreatedAsync(TestContext.Current.CancellationToken);
 
-        var result = await repository.GetAllPagingAsync(pageNumber: 2, pageSize: 5, includes: q => q.Include(p => p.Indirizzo), filter: w => w.Id <= 10);
+        var result = await repository.GetAllPagingAsync(pageNumber: 2, pageSize: 5, includes: q => q.Include(p => p.Indirizzo), filter: w => w.Id <= 10, cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.NotNull(result);
         Assert.Equal(10, result.TotalItems);
